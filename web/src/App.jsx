@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Link, Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AudioLines, Bot, Loader2, MountainSnow, Sparkles, Wand2 } from "lucide-react";
+import { useAuth } from "./context/AuthContext.jsx";
 
 const defaultForm = {
   topic: "",
@@ -28,6 +29,17 @@ const toneOptions = ["Educational", "Inspirational", "Investigative", "Dramatic"
 const styleOptions = ["Documentary", "Narrative", "Newsroom", "Explainer", "Interview"];
 
 function LandingPage() {
+  const { user, signOut } = useAuth();
+  const isAuthenticated = Boolean(user);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (err) {
+      console.error("Failed to sign out", err);
+    }
+  };
+
   return (
     <div className="relative min-h-screen overflow-x-hidden bg-base-800 text-white">
       <div className="pointer-events-none absolute inset-0 opacity-90 blur-3xl" aria-hidden>
@@ -51,18 +63,38 @@ function LandingPage() {
             </div>
           </div>
           <div className="hidden items-center gap-4 md:flex">
-            <a
-              href="/auth/sign-in"
-              className="rounded-full border border-white/12 px-5 py-2 text-xs font-medium uppercase tracking-[0.35em] text-white/70 transition hover:border-white/30 hover:text-white"
-            >
-              Sign In
-            </a>
-            <a
-              href="/auth/request-access"
-              className="rounded-full border border-accent-purple/60 bg-accent-purple/20 px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white shadow-glow transition hover:-translate-y-0.5 hover:bg-accent-purple/40"
-            >
-              Request Access
-            </a>
+            {isAuthenticated ? (
+              <>
+                <Link
+                  to="/studio"
+                  className="rounded-full border border-accent-purple/60 bg-accent-purple/20 px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white shadow-glow transition hover:-translate-y-0.5 hover:bg-accent-purple/40"
+                >
+                  Enter Studio
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="rounded-full border border-white/12 px-5 py-2 text-xs font-medium uppercase tracking-[0.35em] text-white/70 transition hover:border-white/30 hover:text-white"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/auth"
+                  className="rounded-full border border-white/12 px-5 py-2 text-xs font-medium uppercase tracking-[0.35em] text-white/70 transition hover:border-white/30 hover:text-white"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  to="/auth"
+                  className="rounded-full border border-accent-purple/60 bg-accent-purple/20 px-5 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-white shadow-glow transition hover:-translate-y-0.5 hover:bg-accent-purple/40"
+                >
+                  Request Access
+                </Link>
+              </>
+            )}
           </div>
         </nav>
 
@@ -88,19 +120,30 @@ function LandingPage() {
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link
-                  to="/studio"
+                  to={isAuthenticated ? "/studio" : "/auth"}
                   className="accent-gradient flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white shadow-glow transition hover:-translate-y-0.5"
                 >
                   <Wand2 className="h-4 w-4" />
-                  Launch Studio
+                  {isAuthenticated ? "Launch Studio" : "Request Access"}
                 </Link>
-                <a
-                  href="/auth/sign-in"
-                  className="group flex items-center gap-2 rounded-full border border-white/15 px-6 py-3 text-sm font-medium text-white/70 transition hover:border-white/40 hover:text-white"
-                >
-                  <AudioLines className="h-4 w-4 transition group-hover:text-accent-cyan" />
-                  Sign In
-                </a>
+                {isAuthenticated ? (
+                  <button
+                    type="button"
+                    onClick={handleSignOut}
+                    className="group flex items-center gap-2 rounded-full border border-white/15 px-6 py-3 text-sm font-medium text-white/70 transition hover:border-white/40 hover:text-white"
+                  >
+                    <AudioLines className="h-4 w-4 transition group-hover:text-accent-cyan" />
+                    Sign Out
+                  </button>
+                ) : (
+                  <Link
+                    to="/auth"
+                    className="group flex items-center gap-2 rounded-full border border-white/15 px-6 py-3 text-sm font-medium text-white/70 transition hover:border-white/40 hover:text-white"
+                  >
+                    <AudioLines className="h-4 w-4 transition group-hover:text-accent-cyan" />
+                    Sign In
+                  </Link>
+                )}
               </div>
               <div className="grid gap-6 pt-4 sm:grid-cols-3">
                 <div className="rounded-3xl border border-white/5 bg-white/[0.03] p-4">
@@ -196,17 +239,27 @@ function LandingPage() {
             </div>
             <div className="flex gap-3">
               <Link
-                to="/studio"
+                to={isAuthenticated ? "/studio" : "/auth"}
                 className="accent-gradient flex items-center gap-2 rounded-full px-5 py-3 text-xs font-semibold uppercase tracking-wide text-white shadow-glow transition hover:-translate-y-0.5"
               >
-                Launch Studio
+                {isAuthenticated ? "Launch Studio" : "Request Access"}
               </Link>
-              <a
-                href="/auth/sign-in"
-                className="rounded-full border border-white/15 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-white/70 transition hover:border-white/30 hover:text-white"
-              >
-                Sign In
-              </a>
+              {isAuthenticated ? (
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="rounded-full border border-white/15 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-white/70 transition hover:border-white/30 hover:text-white"
+                >
+                  Sign Out
+                </button>
+              ) : (
+                <Link
+                  to="/auth"
+                  className="rounded-full border border-white/15 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-white/70 transition hover:border-white/30 hover:text-white"
+                >
+                  Sign In
+                </Link>
+              )}
             </div>
           </div>
           <div className="mt-10 grid gap-8 md:grid-cols-3">
@@ -242,15 +295,25 @@ function LandingPage() {
             <p className="font-heading text-lg text-white">ClipVox Studio</p>
           </div>
           <div className="flex gap-6 text-xs uppercase tracking-[0.35em] text-white/40">
-            <a href="/auth/sign-in" className="hover:text-white">
-              Sign In
-            </a>
-            <a href="/auth/request-access" className="hover:text-white">
-              Request Access
-            </a>
-            <Link to="/studio" className="hover:text-white">
-              Studio
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <Link to="/studio" className="hover:text-white">
+                  Studio
+                </Link>
+                <button type="button" onClick={handleSignOut} className="hover:text-white">
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/auth" className="hover:text-white">
+                  Sign In
+                </Link>
+                <Link to="/auth" className="hover:text-white">
+                  Request Access
+                </Link>
+              </>
+            )}
           </div>
           <p>© {new Date().getFullYear()} ClipVox. Build cinematic AI stories.</p>
         </div>
@@ -259,7 +322,172 @@ function LandingPage() {
   );
 }
 
+function AuthPage() {
+  const { session, loading, signIn, signUp } = useAuth();
+  const navigate = useNavigate();
+  const [mode, setMode] = useState("sign-in");
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!loading && session) {
+      navigate("/studio", { replace: true });
+    }
+  }, [session, loading, navigate]);
+
+  const updateField = (field) => (event) => {
+    setForm((prev) => ({
+      ...prev,
+      [field]: event.target.value,
+    }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError("");
+    setMessage("");
+
+    if (!form.email || !form.password) {
+      setError("Please provide both email and password.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      if (mode === "sign-in") {
+        await signIn(form.email, form.password);
+        navigate("/studio", { replace: true });
+      } else {
+        const result = await signUp(form.email, form.password);
+        if (result.requiresConfirmation) {
+          setMessage("Check your inbox to confirm your email before signing in.");
+        } else {
+          navigate("/studio", { replace: true });
+        }
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Authentication failed.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-base-800 text-white">
+      <div className="pointer-events-none absolute inset-0 opacity-80 blur-3xl" aria-hidden>
+        <div className="absolute inset-0 bg-aurora-gradient" />
+      </div>
+
+      <header className="relative z-10 border-b border-white/10 bg-black/40 backdrop-blur">
+        <div className="mx-auto flex w-full max-w-4xl items-center justify-between px-6 py-6 md:px-10">
+          <Link to="/" className="flex items-center gap-3 text-white">
+            <Sparkles className="h-5 w-5 text-accent-purple" />
+            <span className="font-heading text-lg">ClipVox Studio</span>
+          </Link>
+          <div className="flex items-center gap-3 text-xs uppercase tracking-[0.35em] text-white/50">
+            <button
+              type="button"
+              onClick={() => setMode("sign-in")}
+              className={`rounded-full px-4 py-2 transition ${
+                mode === "sign-in" ? "bg-white/10 text-white" : "hover:text-white/80"
+              }`}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("sign-up")}
+              className={`rounded-full px-4 py-2 transition ${
+                mode === "sign-up" ? "bg-white/10 text-white" : "hover:text-white/80"
+              }`}
+            >
+              Create Account
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className="relative z-10 mx-auto flex min-h-[70vh] w-full max-w-3xl flex-col justify-center px-6 py-12 md:px-10">
+        <div className="glass-panel border border-white/10 p-10">
+          <header className="mb-8 space-y-2 text-center">
+            <p className="text-xs uppercase tracking-[0.45em] text-white/50">{mode === "sign-in" ? "Welcome back" : "Request access"}</p>
+            <h1 className="font-heading text-3xl text-white">
+              {mode === "sign-in" ? "Sign in to ClipVox Studio" : "Create your ClipVox account"}
+            </h1>
+            <p className="text-sm text-white/60">
+              {mode === "sign-in"
+                ? "Enter your credentials to continue orchestrating your narratives."
+                : "Use a strong password. We’ll confirm your email before activating access."}
+            </p>
+          </header>
+
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            {error && (
+              <div className="rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+                {error}
+              </div>
+            )}
+            {message && (
+              <div className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+                {message}
+              </div>
+            )}
+
+            <label className="block text-sm text-white/60">
+              Email
+              <input
+                type="email"
+                value={form.email}
+                onChange={updateField("email")}
+                className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 focus:border-accent-purple focus:outline-none focus:ring-2 focus:ring-accent-purple/40"
+                placeholder="you@example.com"
+                autoComplete="email"
+                required
+              />
+            </label>
+
+            <label className="block text-sm text-white/60">
+              Password
+              <input
+                type="password"
+                value={form.password}
+                onChange={updateField("password")}
+                className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/30 focus:border-accent-purple focus:outline-none focus:ring-2 focus:ring-accent-purple/40"
+                placeholder="••••••••"
+                autoComplete={mode === "sign-in" ? "current-password" : "new-password"}
+                minLength={6}
+                required
+              />
+            </label>
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="accent-gradient flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold uppercase tracking-wide text-white shadow-glow transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              {mode === "sign-in" ? "Sign In" : "Create Account"}
+            </button>
+          </form>
+
+          <footer className="mt-8 text-center text-xs text-white/50">
+            <p>
+              Need to head back?{" "}
+              <Link to="/" className="text-white hover:underline">
+                Return to landing page
+              </Link>
+            </p>
+          </footer>
+        </div>
+      </main>
+    </div>
+  );
+}
+
 function StudioPage() {
+  const { session, loading, signOut } = useAuth();
   const [form, setForm] = useState(defaultForm);
   const [mode, setMode] = useState("oneshot");
   const [script, setScript] = useState("");
@@ -286,6 +514,9 @@ function StudioPage() {
       audioSegments.forEach((segment) => URL.revokeObjectURL(segment.url));
     };
   }, [audioSegments]);
+
+  const accessToken = session?.access_token ?? "";
+  const isAuthenticated = Boolean(session);
 
   const updateField = (name, value) => setForm((prev) => ({ ...prev, [name]: value }));
 
@@ -322,11 +553,18 @@ function StudioPage() {
       };
       const res = await fetch("/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
         body: JSON.stringify(payload),
       });
 
       const text = await res.text();
+      if (res.status === 401) {
+        await handleStudioSignOut();
+        throw new Error("Your session expired. Please sign in again.");
+      }
       if (!res.ok) throw new Error(text || "Script generation failed.");
 
       setScript(text.trim());
@@ -366,10 +604,17 @@ function StudioPage() {
       };
       const res = await fetch("/voice", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
         body: JSON.stringify(payload),
       });
       const data = await res.json();
+      if (res.status === 401) {
+        await handleStudioSignOut();
+        throw new Error("Your session expired. Please sign in again.");
+      }
       if (!res.ok) throw new Error(data.error || "Voice synthesis failed.");
 
       const segmentsData = Array.isArray(data.segments) ? data.segments : [];
@@ -423,6 +668,29 @@ function StudioPage() {
     }
   };
 
+  const handleStudioSignOut = async () => {
+    try {
+      await signOut();
+    } catch (err) {
+      console.error("Failed to sign out", err);
+      setError("Unable to sign out. Please refresh and try again.");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-base-800 text-white">
+        <div className="glass-panel border border-white/10 px-6 py-4 text-sm text-white/70">
+          Checking your session...
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/auth" replace />;
+  }
+
   return (
     <div className="min-h-screen bg-base-800 text-white">
       <header className="border-b border-white/10 bg-black/40 backdrop-blur">
@@ -448,9 +716,13 @@ function StudioPage() {
             >
               Guided
             </button>
-            <a href="/auth/sign-in" className="rounded-full px-3 py-2 hover:text-white/80">
-              Sign In
-            </a>
+            <button
+              type="button"
+              onClick={handleStudioSignOut}
+              className="rounded-full px-3 py-2 hover:text-white/80"
+            >
+              Sign Out
+            </button>
           </nav>
         </div>
       </header>
@@ -875,7 +1147,9 @@ function StudioPage() {
           <span>© {new Date().getFullYear()} ClipVox Studio</span>
           <div className="flex gap-5">
             <Link to="/">Landing</Link>
-            <a href="/auth/sign-in">Account</a>
+            <button type="button" onClick={handleStudioSignOut} className="hover:text-white">
+              Sign Out
+            </button>
           </div>
         </div>
       </footer>
@@ -888,6 +1162,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/auth" element={<AuthPage />} />
         <Route path="/studio" element={<StudioPage />} />
       </Routes>
     </BrowserRouter>

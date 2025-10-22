@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import OpenAI from "openai";
 import { GoogleAuth } from "google-auth-library";
+import { createClient } from "@supabase/supabase-js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -19,6 +20,24 @@ if (!openAIApiKey) {
   process.exit(1);
 }
 
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const usageTable = process.env.SUPABASE_USAGE_TABLE || "usage_events";
+
+if (!supabaseUrl || !supabaseServiceRoleKey) {
+  console.error(
+    "Missing Supabase configuration. Ensure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set before starting the server."
+  );
+  process.exit(1);
+}
+
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRoleKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+  },
+});
+
 const client = new OpenAI({ apiKey: openAIApiKey });
 
 app.use(express.json());
@@ -34,6 +53,47 @@ const TTS_SAFE_BYTE_LIMIT = 4500;
 let googleAuthClientPromise;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function requireAuth(req, res, next) {
+  const authHeader = req.headers.authorization || "";
+
+  if (!authHeader || !/^Bearer\s+/i.test(authHeader)) {
+    return res.status(401).json({ error: "Missing authentication token" });
+  }
+
+  const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+  if (!token) {
+    return res.status(401).json({ error: "Invalid authentication token" });
+  }
+
+  try {
+    const { data, error } = await supabaseAdmin.auth.getUser(token);
+    if (error || !data?.user) {
+      throw error || new Error("User not found");
+    }
+    req.user = data.user;
+    req.authToken = token;
+    return next();
+  } catch (err) {
+    console.error("Auth validation failed:", err instanceof Error ? err.message : err);
+    return res.status(401).json({ error: "Invalid or expired token" });
+  }
+}
+
+async function logUsage(userId, eventType, metadata = {}) {
+  if (!userId) return;
+  try {
+    await supabaseAdmin.from(usageTable).insert([
+      {
+        user_id: userId,
+        event_type: eventType,
+        metadata,
+      },
+    ]);
+  } catch (err) {
+    console.error("Usage logging failed:", err instanceof Error ? err.message : err);
+  }
+}
 
 function splitTextIntoChunks(text, byteLimit = TTS_SAFE_BYTE_LIMIT) {
   const result = [];
@@ -373,7 +433,7 @@ async function synthesizeSpeech({
   };
 }
 
-app.post("/generate", async (req, res) => {
+app.post("/generate", requireAuth, async (req, res) => {
   const { topic, tone, style, length, chapters, mode = "oneshot", draft } = req.body;
   if (!topic) return res.status(400).type("text/plain").send("Missing topic");
 
@@ -397,6 +457,16 @@ app.post("/generate", async (req, res) => {
       draft: mode === "craft" ? String(draft) : undefined,
     });
 
+    await logUsage(req.user?.id, "script.generate", {
+      topic,
+      tone,
+      style,
+      scriptLength,
+      chapterCount,
+      mode,
+      characters: script.length,
+    });
+
     res.type("text/plain").send(script.trim());
   } catch (err) {
     console.error("Error generating script:", err);
@@ -404,7 +474,7 @@ app.post("/generate", async (req, res) => {
   }
 });
 
-app.post("/voice", async (req, res) => {
+app.post("/voice", requireAuth, async (req, res) => {
   try {
     const {
       text,
@@ -428,6 +498,18 @@ app.post("/voice", async (req, res) => {
       languageCode,
       voiceName,
       modelName,
+    });
+
+    await logUsage(req.user?.id, "voice.synthesize", {
+      characters: String(text).length,
+      audioEncoding,
+      speakingRate,
+      pitch,
+      languageCode,
+      voiceName,
+      modelName,
+      segments: synthesis.totalSegments,
+      exceededLimit: synthesis.exceededLimit,
     });
 
     res.json({
