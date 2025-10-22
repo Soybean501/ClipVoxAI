@@ -9,7 +9,13 @@
 }
 
 body {
-  @apply bg-base-800 text-white font-body antialiased;
+  @apply font-body text-white antialiased;
+  background-color: #040910;
+  background-image: radial-gradient(circle at 20% -10%, rgba(56, 189, 248, 0.35), transparent 55%),
+    radial-gradient(circle at 80% 0%, rgba(249, 115, 22, 0.28), transparent 60%),
+    radial-gradient(circle at 50% 120%, rgba(99, 102, 241, 0.25), transparent 55%),
+    linear-gradient(135deg, #040910 0%, #051426 40%, #061f37 100%);
+  background-attachment: fixed;
 }
 
 .glass-panel {
@@ -17,5 +23,60 @@ body {
 }
 
 .accent-gradient {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.85), rgba(6, 182, 212, 0.85));
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.95), rgba(249, 115, 22, 0.95));
+}
+
+.studio-slider {
+  width: 100%;
+  height: 0.4rem;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, rgba(56, 189, 248, 0.85), rgba(249, 115, 22, 0.85));
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  position: relative;
+}
+
+.studio-slider::-webkit-slider-runnable-track {
+  height: 0.4rem;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, rgba(56, 189, 248, 0.85), rgba(249, 115, 22, 0.85));
+}
+
+.studio-slider::-moz-range-track {
+  height: 0.4rem;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, rgba(56, 189, 248, 0.85), rgba(249, 115, 22, 0.85));
+}
+
+.studio-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 18px;
+  width: 18px;
+  border-radius: 9999px;
+  background: #ffffff;
+  border: 3px solid rgba(249, 115, 22, 0.9);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.45);
+  margin-top: -7px;
+  transition: transform 0.2s ease;
+}
+
+.studio-slider::-moz-range-thumb {
+  height: 18px;
+  width: 18px;
+  border-radius: 9999px;
+  background: #ffffff;
+  border: 3px solid rgba(249, 115, 22, 0.9);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.45);
+  transition: transform 0.2s ease;
+}
+
+.studio-slider:focus-visible {
+  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.25);
+}
+
+.studio-slider::-webkit-slider-thumb:active,
+.studio-slider::-moz-range-thumb:active {
+  transform: scale(1.1);
 }

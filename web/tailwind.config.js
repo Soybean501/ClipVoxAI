@@ -9,23 +9,23 @@ export default {
       },
       colors: {
         base: {
-          900: "#050507",
-          800: "#0E0E10",
-          700: "#1A1A1E",
+          900: "#040910",
+          800: "#0A1626",
+          700: "#11263C",
         },
         accent: {
-          purple: "#8B5CF6",
-          cyan: "#06B6D4",
-          pink: "#EC4899",
+          purple: "#38BDF8",
+          cyan: "#F97316",
+          pink: "#6366F1",
         },
-        glass: "rgba(22,22,29,0.75)",
+        glass: "rgba(15,23,42,0.7)",
       },
       backgroundImage: {
         "aurora-gradient":
-          "radial-gradient(circle at 20% 20%, rgba(139,92,246,0.28), transparent 40%), radial-gradient(circle at 80% 0%, rgba(6,182,212,0.25), transparent 45%), radial-gradient(circle at 50% 100%, rgba(236,72,153,0.22), transparent 50%)",
+          "radial-gradient(circle at 15% 20%, rgba(56,189,248,0.28), transparent 45%), radial-gradient(circle at 85% 10%, rgba(249,115,22,0.22), transparent 50%), radial-gradient(circle at 40% 110%, rgba(99,102,241,0.25), transparent 50%)",
       },
       boxShadow: {
-        glow: "0 0 35px rgba(139,92,246,0.45)",
+        glow: "0 0 35px rgba(56,189,248,0.45)",
         panel: "0 16px 40px rgba(0,0,0,0.35)",
       },
       animation: {
