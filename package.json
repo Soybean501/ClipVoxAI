@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node server/index.js"
+    "start": "node server/index.js",
+    "build": "npm --prefix web install --include=dev && npm --prefix web run build"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
